@@ -65,11 +65,11 @@ Development uses Vite with an /api proxy to the loopback Express server; product
 - [x] Add Vitest + Supertest tests using an injected mock transport; verify no real SMTP calls.
 
 ## Phase 3 — composer and confirmation
-- [ ] Implement responsive form, attachment controls, and client-side validation.
-- [ ] Add accessible text preview dialog with explicit confirmation.
-- [ ] Submit FormData only on confirmation; disable duplicate sends and editing while pending.
-- [ ] Show success/errors and preserve the draft on failure, including ambiguous-timeout guidance.
-- [ ] Test form validation, preview/cancel, confirmation, pending-state behavior, and feedback with Vitest, React Testing Library, and mocked fetch.
+- [x] Implement responsive form, attachment controls, and client-side validation.
+- [x] Add accessible text preview dialog with explicit confirmation.
+- [x] Submit FormData only on confirmation; disable duplicate sends and editing while pending.
+- [x] Show success/errors and preserve the draft on failure, including ambiguous-timeout guidance.
+- [x] Test form validation, preview/cancel, confirmation, pending-state behavior, and feedback with Vitest, React Testing Library, and mocked fetch.
 
 ## Phase 4 — integration and handoff
 - [ ] Run full test suite and production build.
@@ -110,3 +110,5 @@ Phase 1 (2026-11-16):
 Implementation decisions: configuration is validated on all server startups (dummy placeholders suffice for Phase 1 because no SMTP connection exists); the UI is a responsive foundation/status screen only. Email composition and sending remain in their planned later phases. Use `npm start` for integrated built-frontend serving rather than a standalone Vite preview server.
 
 Phase 2: 36 backend/configuration tests passed using mock transports only. Added bounded memory PDF parsing, strict shared text schema, fixed sender, local origin/host checks, Helmet, in-memory rate/concurrency limits, SMTP timeouts, and safe error responses. No SMTP network verification performed.
+
+Phase 3: 43 tests passed across four files; production build passed. Added responsive composer, shared validation, PDF controls, native modal preview, explicit confirmation, in-flight locking, safe feedback, and draft preservation. Frontend tests mock fetch; no emails sent.
