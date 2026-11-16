@@ -72,11 +72,11 @@ Development uses Vite with an /api proxy to the loopback Express server; product
 - [x] Test form validation, preview/cancel, confirmation, pending-state behavior, and feedback with Vitest, React Testing Library, and mocked fetch.
 
 ## Phase 4 — integration and handoff
-- [ ] Run full test suite and production build.
-- [ ] Verify responsive layout and keyboard flow locally where browser tooling is available; report any unverified checks.
-- [ ] Review built assets for backend-secret exposure using dummy configuration, never real secrets.
-- [ ] Finalize README commands, request limits, privacy behavior, troubleshooting, and restricted-use constraints.
-- [ ] Report checks and remaining setup. Real email smoke testing requires explicit user permission and is not an automated acceptance gate.
+- [x] Run full test suite and production build.
+- [x] Verify responsive layout and keyboard flow locally where browser tooling is available; report any unverified checks.
+- [x] Review built assets for backend-secret exposure using dummy configuration, never real secrets.
+- [x] Finalize README commands, request limits, privacy behavior, troubleshooting, and restricted-use constraints.
+- [x] Report checks and remaining setup. Real email smoke testing requires explicit user permission and is not an automated acceptance gate.
 
 ## Test matrix
 - Valid plain-text email, optional PDF, exact fixed sender and recipient, one transport call per request.
@@ -112,3 +112,12 @@ Implementation decisions: configuration is validated on all server startups (dum
 Phase 2: 36 backend/configuration tests passed using mock transports only. Added bounded memory PDF parsing, strict shared text schema, fixed sender, local origin/host checks, Helmet, in-memory rate/concurrency limits, SMTP timeouts, and safe error responses. No SMTP network verification performed.
 
 Phase 3: 43 tests passed across four files; production build passed. Added responsive composer, shared validation, PDF controls, native modal preview, explicit confirmation, in-flight locking, safe feedback, and draft preservation. Frontend tests mock fetch; no emails sent.
+
+Phase 4 (2026-11-16): completed.
+- Final `npm test`: 44 tests passed across four files, including interrupted-upload slot cleanup. All delivery calls used injected mock transports or mocked browser fetch.
+- Final `npm run build` succeeded with dummy SMTP variables; scanned built assets and found no SMTP password/configuration exposure.
+- Headless installed Google Chrome verified desktop (1280px) and mobile (390px) layouts without horizontal overflow, dialog focus, Escape cancellation, confirmation, one mocked submission, and draft reset. No browser errors. Browser automation dependencies were temporary under /tmp, not added to application dependencies.
+- Verified final development startup, transformed composer module, and proxied backend health; production browser checks loaded real built assets.
+- README now documents Gmail setup, local startup, actual API limits, in-memory privacy behavior, uncertainty after SMTP/network failure, and restricted-use constraints. .env.example contains placeholders only.
+- No real email was sent, no credentials verified remotely, and no public deployment performed. Verification servers stopped. Real Gmail delivery remains an optional user-authorized smoke test after local credentials are configured.
+- All implementation phases complete. Git commits remain local pending explicit push approval.

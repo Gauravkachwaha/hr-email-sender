@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
+import http from 'node:http';
 import { createApp } from '../server/app.js';
 const data = { recipient: 'hr@example.com', subject: 'Application', content: 'Hello\nThank you' };
 function setup(options = {}) {
@@ -60,4 +61,23 @@ describe('protected email endpoint with mock transport', () => {
     await vi.waitFor(() => expect(resolve).toBeTypeOf('function'));
     await post().expect(429); resolve({ accepted: [data.recipient] }); expect((await pending).status).toBe(200); await post().expect(200);
   });
+  it('releases the upload slot after a client abort', async () => {
+    const { app, post } = setup();
+    const server = app.listen(0, '127.0.0.1');
+    await new Promise(resolve => server.once('listening', resolve));
+    let client;
+    try {
+      const started = new Promise(resolve => server.once('request', () => setImmediate(resolve)));
+      client = http.request({ host: '127.0.0.1', port: server.address().port, path: '/api/send-email', method: 'POST', headers: {
+        Host: '127.0.0.1:5000', Origin: 'http://127.0.0.1:5173', 'Content-Type': 'multipart/form-data; boundary=fixture',
+      } });
+      client.on('error', () => {});
+      client.write('--fixture\r\nContent-Disposition: form-data; name="content"\r\n\r\npartial');
+      await started;
+      await post().expect(429);
+      client.destroy();
+      await vi.waitFor(async () => { const response = await post(); expect(response.status).toBe(200); });
+    } finally { client?.destroy(); await new Promise(resolve => server.close(resolve)); }
+  });
+
 });

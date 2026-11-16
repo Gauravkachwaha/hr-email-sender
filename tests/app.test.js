@@ -14,7 +14,7 @@ describe('foundation API', () => {
     expect(response.headers['x-powered-by']).toBeUndefined();
     expect(app.get('trust proxy')).toBe(false);
   });
-  it('does not implement email sending in Phase 1', async () => {
+  it('does not enable sending without an injected transport', async () => {
     const response = await request(app).post('/api/send-email').send({}).expect(404);
     expect(response.body.error.code).toBe('NOT_FOUND');
   });

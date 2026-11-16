@@ -1,68 +1,99 @@
 # HR Email Sender
 
-A local React + Express application for individual HR outreach. **Phase 1 is complete: the frontend shell, health endpoint, configuration, and test infrastructure exist. Email sending is not implemented.**
+A local React + Express application for sending individual HR emails through a preconfigured Gmail account. Includes plain-text composition, optional PDF resumes, preview and confirmation, and delivery feedback. No login, OAuth interface, or database.
 
 ## Run locally
 
-Use Node.js 24 and npm. If using nvm, run `nvm install` then `nvm use` in this directory. If your terminal cannot find Node, load nvm with `source "$HOME/.nvm/nvm.sh"` first.
+Use Node.js 24 and npm. With nvm, run `nvm install` and `nvm use`. If Node is not found, first run `source "$HOME/.nvm/nvm.sh"`.
 
 ```bash
 npm ci
 cp .env.example .env
+```
+
+Do not overwrite an existing `.env`. Edit the root `.env` locally:
+
+```dotenv
+SMTP_USER=your_email@gmail.com
+SMTP_APP_PASSWORD=your_app_password
+PORT=5000
+```
+
+Replace the placeholders with your Gmail address and App Password, then:
+
+```bash
 npm run dev
 ```
 
-Do not overwrite an existing `.env`. The example placeholders are sufficient for Phase 1 startup checks: validation checks configuration shape, not Gmail connectivity. No SMTP transport exists and nothing is sent.
+Open **http://127.0.0.1:5173**. Express runs on **http://127.0.0.1:5000**. Both servers bind to loopback. Ctrl+C stops them. Credentials are validated locally at startup; Gmail is contacted only after **Confirm and send**. Placeholders can start the app for UI inspection but cannot deliver email.
 
-Open **http://127.0.0.1:5173**. The page should show **Backend connected**. Express runs at **http://127.0.0.1:5000**, with health information at `/api/health`. Stop both processes with Ctrl+C.
+For local production mode, stop development and run `npm run build` followed by `npm start`. Open **http://127.0.0.1:5000**. Express serves the frontend and API together.
+
+## Gmail setup
+
+Enable 2-Step Verification and create an App Password in your Google account settings. Use that App Password, not your normal Google password. App Passwords may be unavailable for organization accounts, security-key-only verification, or Advanced Protection. See [Google's instructions](https://support.google.com/accounts/answer/185833). No Google authentication screen is embedded in this application.
+
+Never commit `.env`, share credentials in chat, or use `VITE_` variables for secrets. Existing shell variables override `.env`. Restart both servers after changing configuration. PORT must be 1–65535; avoid the frontend port 5173.
+
+## Sending an email
+
+1. Enter one HR email address, a subject, and your message.
+2. Optionally attach one PDF resume (up to 5 MiB).
+3. Select **Send Email** to review the recipient, text, and attachment.
+4. Select **Confirm and send**, or go back to edit.
+5. Wait for feedback. On success, select **Write another email** for a blank draft.
+
+Success means Gmail accepted the message, not guaranteed inbox delivery. If the connection fails or delivery is uncertain, **check Gmail Sent before retrying**. There are no automatic retries or durable duplicate detection. Editing and duplicate clicks are disabled during an active submission. Closing the tab does not cancel an email Gmail may already have accepted.
+
+Drafts stay in the tab and are lost on refresh. Attachments are held temporarily in bounded server memory, never saved to disk. Preview renders plain text, never HTML or the PDF itself. Attachments are sent with the safe filename `resume.pdf`.
+
+## Commands and structure
 
 | Command | Purpose |
 | --- | --- |
-| `npm run dev` | Run Vite and Express together with change watching |
-| `npm run dev:client` | Run only Vite |
-| `npm run dev:server` | Run only Express |
-| `npm test` | Run Vitest + Supertest once |
-| `npm run test:watch` | Run tests during development |
-| `npm run build` | Build the frontend into dist/ |
-| `npm start` | Serve the built frontend and API locally from Express |
+| `npm run dev` | Vite + Express with change watching |
+| `npm run dev:client` / `npm run dev:server` | Run either development process separately |
+| `npm test` | Vitest + Supertest and React interaction tests |
+| `npm run test:watch` | Watch tests |
+| `npm run build` | Build frontend into dist/ |
+| `npm start` | Serve the built app and API locally |
 
-For the local production mode, run `npm run build` then `npm start`, and open **http://127.0.0.1:5000**. Stop development first to free the API port. The Vite preview command is not the integrated application server; use `npm start` to serve the built app with its API.
+- `client/src/`: React composer, native confirmation dialog, and Tailwind styles.
+- `shared/email-schema.js`: shared Zod text validation and PDF size constant.
+- `server/app.js`: injectable Express app factory and static serving.
+- `server/send-route.js`: access checks, request limits, upload validation, and delivery responses.
+- `server/email.js`: message construction with a fixed sender.
+- `server/index.js`: dotenv loading, Gmail SMTP transport, and loopback listener.
+- `server/config.js`: configuration validation without secret values in errors.
+- `tests/`: isolated configuration, API, and UI tests. Transport and browser fetch calls are mocked; tests never contact Gmail.
+- `PRD.md`, `PLAN.md`, `AGENTS.md`: requirements, verified progress, and contribution rules.
 
-## Backend configuration
+Tailwind uses its [Vite integration](https://tailwindcss.com/docs/installation/using-vite). Nodemailer uses [SMTP with TLS](https://nodemailer.com/smtp) on smtp.gmail.com:465. Transport initialization does not verify credentials over the network.
 
-The backend loads `.env` from the repository root with dotenv. Existing shell environment variables take precedence. Zod validates configuration before listening; error messages show field names without values.
+## API and limits
 
-| Variable | Meaning |
-| --- | --- |
-| SMTP_USER | Sender email address; required and email-shaped |
-| SMTP_APP_PASSWORD | Non-empty Gmail App Password; required |
-| PORT | Backend port, 1–65535; defaults to 5000 |
+`POST /api/send-email` accepts multipart fields `recipient`, `subject`, `content`, and optional `resume`. Unknown/repeated fields and extra files are rejected. The sender cannot be overridden.
 
-Changing `PORT` also changes Vite's proxy target. Restart `npm run dev` after changing `.env`. Avoid the frontend's reserved development port 5173. Both servers bind to `127.0.0.1`.
+- One email address, up to 254 characters; subject 1–200 characters without line breaks; nonblank content up to 20,000 characters.
+- PDF extension, MIME type, and `%PDF-` signature required; 5 MiB maximum. Signature validation is not malware scanning.
+- Five attempts per IP per 15 minutes, including validation failures after access checks. One active upload/send per server process.
+- Uploads have bounded fields/parts, a total byte budget, and a 30-second receive deadline. Oversized streamed or stalled uploads may have their connection closed.
+- SMTP connection/greeting timeouts are 15 seconds; socket inactivity timeout is 30 seconds. Limits reset when the single server process restarts.
+- Explicit localhost/127.0.0.1 host and HTTP origin allowlists; cross-site sends rejected. No permissive CORS or proxy trust.
+- Errors use safe messages; email content, recipients, attachments, and credentials are not logged.
 
-Before email sending is implemented, no real credentials are needed. When configuring Gmail later, enable 2-Step Verification and generate an App Password; use that password rather than your normal Google password. The App Password option may be unavailable for organization accounts, security-key-only verification, or Advanced Protection. See [Google's App Password instructions](https://support.google.com/accounts/answer/185833). Credential setup occurs in Google account settings; the application has no login or OAuth interface.
-
-Never commit `.env`, share credentials in chat, or prefix secrets with `VITE_`. The frontend root is `client/`; production serves only `dist/`. The root `.env` is excluded from Git. Do not publish or tunnel this unauthenticated application: it is intended for localhost or separately enforced restricted access.
-
-## Project structure
-
-- `client/src/`: React landing screen and Tailwind styling. Its only API call is the health check.
-- `server/app.js`: side-effect-free Express factory, health endpoint, optional static serving, and 404 handling.
-- `server/index.js`: dotenv loading, startup validation, local listener, and shutdown handling.
-- `server/config.js`: configuration schema and safe validation errors.
-- `vite.config.js`: React/Tailwind plugins, loopback server, and API proxy. Tailwind uses its [official Vite integration](https://tailwindcss.com/docs/installation/using-vite).
-- `vitest.config.js`, `tests/`: isolated tests for configuration, public health responses, route boundaries, and static serving. Tests never read `.env` or connect to Gmail.
-- `PRD.md`, `PLAN.md`, `AGENTS.md`: requirements, phased work, and contributor rules.
-
-No database, email transport, upload handler, or sending endpoint exists yet. Phase 2 will add the protected endpoint and mocked transport tests; Phase 3 will add the composer and confirmation dialog.
+**Local or externally access-restricted use only.** Do not expose this unauthenticated endpoint through public hosting or tunnels. Rate limiting and origin checks are not authentication. Remote deployment would require a separately enforced access boundary and deliberate origin/host configuration changes.
 
 ## Troubleshooting
 
-- **Invalid or missing configuration:** copy `.env.example` to `.env` if missing, then fix the reported fields. Do not paste their values into bug reports.
-- **Port already in use:** stop the other local instance or select an unused backend PORT and restart both servers. Vite fails instead of silently moving off port 5173.
-- **Backend unavailable:** inspect the API terminal output and visit `/api/health` on the backend port. Confirm both processes are running.
+- **Invalid configuration:** check the reported field names in your root `.env`; do not paste values into reports.
+- **Port already in use:** stop the other instance or change PORT and restart both servers.
+- **Delivery could not be confirmed:** check Gmail Sent first, then verify your App Password and connectivity locally. Do not retry blindly.
+- **Too many attempts:** wait 15 minutes. **Another email is being processed:** wait for the active request to finish.
+- **Resume rejected:** select an actual PDF exported by your document editor, within the size limit.
 - **Frontend build missing:** run `npm run build` before `npm start`.
+- **Snap warning from concurrently:** the verified environment emitted this warning but started both processes successfully; separate development commands are also available.
 
 ## Git workflow
 
-Use Conventional Commits, run relevant tests, review `git status` and `git diff`, and check staged files for secrets before committing. Push only after explicit approval of the commit summary. Never force-push or change repository visibility without permission.
+Use Conventional Commits, run checks after each phase, review status/diff and staged files for secrets, then commit. Push only after explicit approval of the commit summary. Never force-push or change visibility without permission.
