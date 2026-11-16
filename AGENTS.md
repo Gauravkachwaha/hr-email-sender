@@ -20,3 +20,10 @@
 - Test validation failures, transport behavior, upload restrictions, abuse protections, and frontend confirmation/submission behavior.
 - Run appropriate tests and a production build once implementation exists.
 - Keep setup documentation and .env.example aligned with actual configuration. Never commit .env.
+
+## Git and GitHub
+- Repository: hr-email-sender; default branch: main.
+- After each phase, run relevant checks, review git status and git diff, and check staged files for secrets, .env files, credentials, and sensitive attachments.
+- Commit only verified work using Conventional Commits.
+- Before pushing, show the commit summary and obtain explicit user approval. Never force-push, overwrite remote history, or change repository visibility without explicit permission.
+- Explain Git/authentication errors and local remediation steps; never request passwords or access tokens in chat.

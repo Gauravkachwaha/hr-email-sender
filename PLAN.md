@@ -48,11 +48,13 @@ Development uses Vite with an /api proxy to the loopback Express server; product
 - Stop this initial turn here as requested. Application implementation is not started.
 
 ## Phase 1 — project foundation
-- [ ] Create root package and client/server structure with React, Vite, Tailwind, and Express.
-- [ ] Add dotenv and validated configuration; fail clearly on missing production credentials.
-- [ ] Configure loopback dev servers, API proxy, scripts, and local built-asset serving.
-- [ ] Add README setup instructions and explain Gmail App Password prerequisites.
-- [ ] Verify installation, frontend build, and startup/configuration behavior without SMTP traffic.
+- [x] Create root package and client/server structure with React, Vite, Tailwind, and Express.
+- [x] Add dotenv and validated configuration; fail clearly on missing production credentials.
+- [x] Configure loopback dev servers, API proxy, scripts, and local built-asset serving.
+- [x] Add README setup instructions and explain Gmail App Password prerequisites.
+- [x] Verify installation, frontend build, and startup/configuration behavior without SMTP traffic.
+- [x] Add Vitest + Supertest infrastructure and foundation tests.
+- Phase 1 only is implemented. Do not begin Phase 2 without the user's next instruction.
 
 ## Phase 2 — protected email endpoint
 - [ ] Implement text schema and bounded multipart handling (Multer or equivalent maintained Express middleware).
@@ -92,3 +94,17 @@ Development uses Vite with an /api proxy to the loopback Express server; product
 
 ## Verification record
 Phase 0: inspected the empty directory and ancestor instruction files. Planning files only; no application, dependencies, executable tests, build, or email sends yet.
+
+Phase 1 (2026-11-16):
+- Installed dependencies with Node 24.22.1 / npm 11.19.1; lockfile committed for reproducibility. npm reported zero known vulnerabilities at installation.
+- `npm test`: 15 tests passed across 2 files. Covered configuration defaults/rejection/redaction, health response, absent send endpoint, and production static/API route boundaries.
+- `npm run build`: successful; generated HTML, JavaScript, and Tailwind CSS in ignored dist/.
+- Started `npm run dev` with dummy environment values. HTTP checks passed for Vite on 127.0.0.1:5173, Express on 127.0.0.1:5000, the proxied health endpoint, and transformed React entry module.
+- Started `npm start` and verified the built page, referenced JS/CSS assets, and health endpoint on 127.0.0.1:5000.
+- Verified missing configuration exits with status 1 and field names only. Scanned built assets for SMTP configuration/dummy password exposure; none found.
+- Stopped all verification servers. No real credentials, SMTP transport, or email sends were used. No .env was created.
+- HTTP/module/build checks verify startup; visual browser rendering and keyboard interaction were not tested in this phase.
+- Concurrently emitted an environment-specific Snap warning; both child processes started and stopped successfully despite it.
+- Git remote is configured as origin for Gauravkachwaha/hr-email-sender, branch main. Push remains subject to explicit approval.
+
+Implementation decisions: configuration is validated on all server startups (dummy placeholders suffice for Phase 1 because no SMTP connection exists); the UI is a responsive foundation/status screen only. Email composition and sending remain in their planned later phases. Use `npm start` for integrated built-frontend serving rather than a standalone Vite preview server.
