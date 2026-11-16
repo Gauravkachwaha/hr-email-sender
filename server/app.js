@@ -1,14 +1,19 @@
 import express from 'express';
 import path from 'node:path';
+import helmet from 'helmet';
+import { addSendRoute } from './send-route.js';
 
-export function createApp({ staticDirectory } = {}) {
+export function createApp({ staticDirectory, transport, sender, port, rateMax } = {}) {
   const app = express();
+  app.use(helmet({ contentSecurityPolicy: { directives: { upgradeInsecureRequests: null } }, strictTransportSecurity: false }));
   app.disable('x-powered-by');
   app.set('trust proxy', false);
 
   app.get('/api/health', (_req, res) => {
     res.set('Cache-Control', 'no-store').json({ status: 'ok', service: 'hr-email-sender' });
   });
+
+  if (transport) addSendRoute(app, { transport, sender, port, rateMax });
 
   // Unknown API routes must not fall through to the frontend.
   app.use('/api', (_req, res) => {

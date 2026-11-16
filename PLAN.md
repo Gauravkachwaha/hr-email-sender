@@ -54,15 +54,15 @@ Development uses Vite with an /api proxy to the loopback Express server; product
 - [x] Add README setup instructions and explain Gmail App Password prerequisites.
 - [x] Verify installation, frontend build, and startup/configuration behavior without SMTP traffic.
 - [x] Add Vitest + Supertest infrastructure and foundation tests.
-- Phase 1 only is implemented. Do not begin Phase 2 without the user's next instruction.
+- User authorized completion of all remaining phases on 2026-11-16.
 
 ## Phase 2 — protected email endpoint
-- [ ] Implement text schema and bounded multipart handling (Multer or equivalent maintained Express middleware).
-- [ ] Validate one recipient and one optional PDF; reject unexpected/repeated inputs.
-- [ ] Implement host/origin checks, security headers, request timeout/size limits, rate limiting, and concurrency limits.
-- [ ] Implement Nodemailer service with fixed sender, TLS, sanitized attachment name, and timeouts.
-- [ ] Return sanitized, consistent responses; never automatically retry sends.
-- [ ] Add Vitest + Supertest tests using an injected mock transport; verify no real SMTP calls.
+- [x] Implement text schema and bounded multipart handling (Multer or equivalent maintained Express middleware).
+- [x] Validate one recipient and one optional PDF; reject unexpected/repeated inputs.
+- [x] Implement host/origin checks, security headers, request timeout/size limits, rate limiting, and concurrency limits.
+- [x] Implement Nodemailer service with fixed sender, TLS, sanitized attachment name, and timeouts.
+- [x] Return sanitized, consistent responses; never automatically retry sends.
+- [x] Add Vitest + Supertest tests using an injected mock transport; verify no real SMTP calls.
 
 ## Phase 3 — composer and confirmation
 - [ ] Implement responsive form, attachment controls, and client-side validation.
@@ -108,3 +108,5 @@ Phase 1 (2026-11-16):
 - Git remote is configured as origin for Gauravkachwaha/hr-email-sender, branch main. Push remains subject to explicit approval.
 
 Implementation decisions: configuration is validated on all server startups (dummy placeholders suffice for Phase 1 because no SMTP connection exists); the UI is a responsive foundation/status screen only. Email composition and sending remain in their planned later phases. Use `npm start` for integrated built-frontend serving rather than a standalone Vite preview server.
+
+Phase 2: 36 backend/configuration tests passed using mock transports only. Added bounded memory PDF parsing, strict shared text schema, fixed sender, local origin/host checks, Helmet, in-memory rate/concurrency limits, SMTP timeouts, and safe error responses. No SMTP network verification performed.
