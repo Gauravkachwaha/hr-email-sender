@@ -166,17 +166,4 @@ Tailwind uses its [Vite integration](https://tailwindcss.com/docs/installation/u
 
 </details>
 
-## Contributing
 
-Use Conventional Commits, run checks after each phase, review status/diff and staged files for secrets, then commit. Push only after explicit approval of the commit summary. Never force-push or change visibility without permission.
-
-
----
-
-<div align="center">
-
-**Compose → Review → Confirm → Send**
-
-Small, personal outreach—without extra accounts or infrastructure.
-
-</div>
